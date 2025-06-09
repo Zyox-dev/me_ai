@@ -1,5 +1,5 @@
-const supabaseUrl = "https://YOUR_PROJECT.supabase.co";
-const supabaseKey = "YOUR_PUBLIC_ANON_KEY";
+const supabaseUrl = "https://iuecvdsuzxedppqxfrmu.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1ZWN2ZHN1enhlZHBwcXhmcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0NzgyMTEsImV4cCI6MjA2NTA1NDIxMX0.rbwGs7dAGyDmZAFsP6bagoaMjxFTHZg-cAuC_W3nK3Q";
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 const API_KEY = "AIzaSyBTo9FBL2oWDSBjRPH1Kohvi7cCoKW296I"; // Replace with your real key
