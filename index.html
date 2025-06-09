@@ -161,6 +161,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 500;
+      margin-top: 16px;
     }
 
     .btn-google:hover {
@@ -493,8 +494,10 @@
     // Initialize Supabase
     const supabaseUrl = "https://iuecvdsuzxedppqxfrmu.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1ZWN2ZHN1enhlZHBwcXhmcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0NzgyMTEsImV4cCI6MjA2NTA1NDIxMX0.rbwGs7dAGyDmZAFsP6bagoaMjxFTHZg-cAuC_W3nK3Q";
-    const { createClient } = supabase;
-    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Google OAuth Client ID
+    const GOOGLE_CLIENT_ID = "967193554835-q004sm98828fb2h247g2ess0ehpeaog6.apps.googleusercontent.com";
 
     // API Configuration
     const API_KEY = "AIzaSyBTo9FBL2oWDSBjRPH1Kohvi7cCoKW296I";
@@ -508,7 +511,9 @@
     // Check authentication status on page load
     window.addEventListener('DOMContentLoaded', async () => {
       try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        
         if (user) {
           currentUser = user;
           showChatApp();
@@ -523,7 +528,7 @@
     });
 
     // Listen for auth changes
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, session);
       if (event === 'SIGNED_IN') {
         currentUser = session.user;
@@ -576,7 +581,7 @@
       }
 
       try {
-        const { data, error } = await supabaseClient.auth.signUp({ 
+        const { data, error } = await supabase.auth.signUp({ 
           email, 
           password 
         });
@@ -604,7 +609,7 @@
       }
 
       try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ 
+        const { data, error } = await supabase.auth.signInWithPassword({ 
           email, 
           password 
         });
@@ -624,26 +629,34 @@
 
     async function signInWithGoogle() {
       try {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo: window.location.origin,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent'
+            },
+            scopes: 'openid profile email'
           }
         });
         
         if (error) {
           console.error('Google login error:', error);
           showMessage('Google login failed: ' + error.message);
+          return;
         }
+        
+        console.log('Google login initiated:', data);
       } catch (err) {
         console.error('Google login exception:', err);
-        showMessage('An error occurred during Google login');
+        showMessage('An error occurred during Google login: ' + err.message);
       }
     }
 
     async function logout() {
       try {
-        const { error } = await supabaseClient.auth.signOut();
+        const { error } = await supabase.auth.signOut();
         if (error) {
           console.error('Logout error:', error);
         }
@@ -726,7 +739,7 @@
       if (!currentUser) return;
 
       try {
-        const { error } = await supabaseClient.from('chats').insert([
+        const { error } = await supabase.from('chats').insert([
           { user_id: currentUser.id, role: role, message: text }
         ]);
         
@@ -742,7 +755,7 @@
       if (!currentUser) return;
 
       try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
           .from("chats")
           .select("*")
           .eq("user_id", currentUser.id)
