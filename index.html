@@ -5,36 +5,697 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/x-png" href="image.png" />
   <title>Arnav GPT</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 100%);
+      color: #e6edf3;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* LOGIN PAGE STYLES */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: rgba(22, 27, 34, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-header {
+      margin-bottom: 32px;
+    }
+
+    .login-header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      background: linear-gradient(45deg, #58a6ff, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-header p {
+      color: #8b949e;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: #f0f6fc;
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: #6e7681;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #238636, #2ea043);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(45deg, #2ea043, #238636);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #58a6ff;
+      border: 1px solid #30363d;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(88, 166, 255, 0.1);
+      border-color: #58a6ff;
+    }
+
+    .divider {
+      margin: 24px 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #30363d;
+    }
+
+    .divider span {
+      background: rgba(22, 27, 34, 0.95);
+      padding: 0 16px;
+      color: #8b949e;
+      font-size: 0.85rem;
+    }
+
+    /* CHAT APP STYLES */
+    .app-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #0d1117;
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .app-header {
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .header-left .tagline {
+      font-size: 0.9rem;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+
+    .logout-btn {
+      padding: 8px 16px;
+      background: rgba(248, 81, 73, 0.1);
+      color: #f85149;
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: rgba(248, 81, 73, 0.2);
+      border-color: #f85149;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+      background: #0d1117;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 3px;
+    }
+
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: messageSlide 0.3s ease-out;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      font-size: 1.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(88, 166, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .chat-message.user .avatar {
+      background: rgba(35, 134, 54, 0.1);
+    }
+
+    .message-text {
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 75%;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .chat-message.user .message-text {
+      background: linear-gradient(135deg, #238636, #2ea043);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.bot .message-text {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #e6edf3;
+      border-bottom-left-radius: 4px;
+    }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #0d1117;
+      color: #e6edf3;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #user-input:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    .send-btn {
+      padding: 12px 16px;
+      background: linear-gradient(45deg, #238636, #2ea043);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-btn:hover {
+      background: linear-gradient(45deg, #2ea043, #238636);
+      transform: translateY(-1px);
+    }
+
+    .send-btn:active {
+      transform: translateY(0);
+    }
+
+    /* UTILITY CLASSES */
+    .hidden {
+      display: none !important;
+    }
+
+    .error-message {
+      background: rgba(248, 81, 73, 0.1);
+      color: #f85149;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+
+    .success-message {
+      background: rgba(35, 134, 54, 0.1);
+      color: #2ea043;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(35, 134, 54, 0.3);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .login-box {
+        padding: 32px 24px;
+      }
+      
+      .app-header {
+        padding: 16px 20px;
+      }
+      
+      .chat-box {
+        padding: 20px;
+      }
+      
+      .input-container {
+        padding: 16px 20px;
+      }
+      
+      .message-text {
+        max-width: 85%;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="app-container">
-
-    <header>
-      <h1>🧠 Arnav GPT</h1>
-      <p class="tagline">Your philosophical coding companion</p>
-    </header>
-
-    <!-- Auth Section -->
-    <div class="auth-box">
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-      <button onclick="signUp()">Sign Up</button>
-      <button onclick="signIn()">Login</button>
-      <button onclick="logout()">Logout</button>
-    </div>
-
-    <!-- Chat Section -->
-    <div id="chat-box" class="chat-box"></div>
-
-    <div class="input-container">
-      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
-      <button onclick="sendMessage()">➤</button>
+  <!-- LOGIN PAGE -->
+  <div id="login-page" class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <h1>🧠 Arnav GPT</h1>
+        <p>Your philosophical coding companion</p>
+      </div>
+      
+      <form id="auth-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+        </div>
+        
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" onclick="signIn()">Sign In</button>
+          <button type="button" class="btn btn-secondary" onclick="signUp()">Sign Up</button>
+        </div>
+      </form>
+      
+      <div id="auth-message"></div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- CHAT APP -->
+  <div id="chat-app" class="app-container hidden">
+    <header class="app-header">
+      <div class="header-left">
+        <h1>🧠 Arnav GPT</h1>
+        <p class="tagline">Your philosophical coding companion</p>
+      </div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    
+    <div id="chat-box" class="chat-box"></div>
+    
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase
+    const supabaseUrl = "https://iuecvdsuzxedppqxfrmu.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1ZWN2ZHN1enhlZHBwcXhmcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk0NzgyMTEsImV4cCI6MjA2NTA1NDIxMX0.rbwGs7dAGyDmZAFsP6bagoaMjxFTHZg-cAuC_W3nK3Q";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // API Configuration
+    const API_KEY = "AIzaSyBTo9FBL2oWDSBjRPH1Kohvi7cCoKW296I";
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+    const systemPrompt = `You are Arnav Purohit — a 19-year-old CS, DS, and AI undergrad...`;
+
+    let chatHistory = [];
+    let currentUser = null;
+
+    // Check authentication status on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        currentUser = user;
+        showChatApp();
+        await loadChatHistory();
+      } else {
+        showLoginPage();
+      }
+    });
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        currentUser = session.user;
+        showChatApp();
+        loadChatHistory();
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        showLoginPage();
+        clearChat();
+      }
+    });
+
+    // UI Functions
+    function showLoginPage() {
+      document.getElementById('login-page').classList.remove('hidden');
+      document.getElementById('chat-app').classList.add('hidden');
+    }
+
+    function showChatApp() {
+      document.getElementById('login-page').classList.add('hidden');
+      document.getElementById('chat-app').classList.remove('hidden');
+    }
+
+    function showMessage(message, type = 'error') {
+      const messageDiv = document.getElementById('auth-message');
+      messageDiv.innerHTML = `<div class="${type}-message">${message}</div>`;
+      setTimeout(() => {
+        messageDiv.innerHTML = '';
+      }, 5000);
+    }
+
+    function clearChat() {
+      document.getElementById("chat-box").innerHTML = "";
+      chatHistory = [];
+    }
+
+    // Auth Functions
+    async function signUp() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+          showMessage(error.message);
+        } else {
+          showMessage("Signup successful! Check your email for verification.", 'success');
+        }
+      } catch (err) {
+        showMessage('An error occurred during signup');
+      }
+    }
+
+    async function signIn() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        showMessage('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          showMessage(error.message);
+        }
+        // Success handled by auth state change listener
+      } catch (err) {
+        showMessage('An error occurred during login');
+      }
+    }
+
+    async function logout() {
+      try {
+        await supabase.auth.signOut();
+        // Success handled by auth state change listener
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+    }
+
+    // Chat Functions
+    async function sendMessage() {
+      if (!currentUser) {
+        showLoginPage();
+        return;
+      }
+
+      const inputField = document.getElementById("user-input");
+      const userText = inputField.value.trim();
+      if (!userText) return;
+
+      appendMessage("👾", userText, "user");
+      inputField.value = "";
+
+      try {
+        const botReply = await getBotReply(userText);
+        appendMessage("🧠", botReply, "bot");
+      } catch (err) {
+        appendMessage("🧠", "Sorry, I encountered an error. Please try again.", "bot");
+      }
+    }
+
+    function appendMessage(avatar, text, role) {
+      const chatBox = document.getElementById("chat-box");
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("chat-message", role);
+      
+      messageDiv.innerHTML = `
+        <div class="avatar">${avatar}</div>
+        <div class="message-text">${text}</div>
+      `;
+      
+      chatBox.appendChild(messageDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      
+      if (currentUser) {
+        saveMessage(role, text);
+      }
+    }
+
+    async function getBotReply(userInput) {
+      const messages = [];
+
+      if (chatHistory.length === 0) {
+        messages.push({ role: "user", parts: [{ text: systemPrompt }] });
+      }
+
+      chatHistory.forEach(entry => {
+        messages.push({ role: "user", parts: [{ text: entry.user }] });
+        messages.push({ role: "model", parts: [{ text: entry.bot }] });
+      });
+
+      messages.push({ role: "user", parts: [{ text: userInput }] });
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: messages })
+      });
+
+      const result = await response.json();
+      const botReply = result?.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Failed to parse response.";
+
+      chatHistory.push({ user: userInput, bot: botReply });
+
+      return botReply;
+    }
+
+    // Database Functions
+    async function saveMessage(role, text) {
+      if (!currentUser) return;
+
+      try {
+        await supabase.from('chats').insert([
+          { user_id: currentUser.id, role: role, message: text }
+        ]);
+      } catch (err) {
+        console.error('Save message error:', err);
+      }
+    }
+
+    async function loadChatHistory() {
+      if (!currentUser) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("chats")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        chatHistory = [];
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+
+        data.forEach(chat => {
+          appendMessage(chat.role === "user" ? "👾" : "🧠", chat.message, chat.role);
+          if (chat.role === "user") {
+            chatHistory.push({ user: chat.message, bot: "" });
+          } else if (chatHistory.length > 0) {
+            chatHistory[chatHistory.length - 1].bot = chat.message;
+          }
+        });
+      } catch (err) {
+        console.error('Load chat history error:', err);
+      }
+    }
+
+    // Enter key support
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('login-page').classList.contains('hidden')) {
+          // In chat app
+          sendMessage();
+        } else {
+          // In login page
+          signIn();
+        }
+      }
+    });
+  </script>
 </body>
 </html>
